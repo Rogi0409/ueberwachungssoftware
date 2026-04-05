@@ -77,6 +77,53 @@ python -m alembic revision --autogenerate -m "create companies table"
 Migration anwenden
 python -m alembic upgrade head
 
+Neuer Stand (API-Implementierung)
+
+Im aktuellen Schritt wurde der erste vollständige API-Endpunkt implementiert:
+
+POST /companies
+
+Damit ist es nun möglich, Firmen über die API zu erstellen und direkt in der Datenbank zu speichern.
+
+Umsetzung:
+
+• Einführung von Pydantic-Schemas:
+  CompanyCreate → für eingehende Requests (Validierung)
+  CompanyRead → für ausgehende Responses
+• Einführung einer Service-Schicht:
+  create_company(...) übernimmt die Erstellung und Speicherung in der Datenbank
+• Einführung einer Datenbank-Session:
+   zentrale Bereitstellung über get_db()
+• Implementierung des Endpunkts:
+  POST /companies
+  Speicherung der Daten über SQLAlchemy
+  Rückgabe der gespeicherten Firma inkl. ID und Zeitstempel
+
+Ergebnis:
+
+• End-to-End-Datenfluss funktioniert:
+  Request → Validierung → Service → Datenbank → Response
+• Daten werden erfolgreich in PostgreSQL gespeichert
+• API kann über Swagger (/docs) getestet werden
+
+Beispiel:
+Request:
+{
+  "name": "Muster GmbH",
+  "legal_form": "GmbH",
+  "registration_country": "DE",
+  "registration_number": "HRB 12345"
+}
+Response:
+{
+  "id": 1,
+  "name": "Muster GmbH",
+  "legal_form": "GmbH",
+  "registration_country": "DE",
+  "registration_number": "HRB 12345",
+  "created_at": "...",
+  "updated_at": "..."
+}
 Aktueller Stand
 Der aktuelle Entwicklungsstand umfasst:
 •	Docker-basierte Entwicklungsumgebung
@@ -86,17 +133,22 @@ Der aktuelle Entwicklungsstand umfasst:
 •	SQLAlchemy-Datenmodell für Firmen
 •	Alembic erfolgreich integriert
 •	Tabelle companies erstellt
+•	POST /companies API-Endpunkt implementiert
+•	End-to-End-Datenfluss (API → Service → Datenbank → Response) funktioniert
+•	Pydantic-Schemas für Request und Response integriert
+•	Service-Schicht für Datenverarbeitung eingeführt
+•	Daten können erfolgreich über die API gespeichert werden
 
 Nächste Schritte
-•	API-Endpunkte für Firmen erstellen
-o	POST /companies
-o	GET /companies
-•	Speicherung und Abruf von Daten testen
+•	GET /companies implementieren (Abruf von Firmen)
+•	Speicherung und Abruf von Daten weiter testen
+•	API-Struktur weiter ausbauen (z. B. Trennung in Router)
 •	Erweiterung um:
 o	Personen
 o	Beteiligungen
 o	Prüf-Fälle
 •	Einführung von Audit-Logs
+
 
  Architekturprinzipien
 •	einfacher, stabiler Start (kein Overengineering)
